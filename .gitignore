@@ -1,0 +1,16 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+/target
+*.so
+src/aoc_2025/data/eval/*
+.coverage
+
+
+# Virtual environments
+.venv

@@ -1,0 +1,65 @@
+[project]
+name = "aoc-2025"
+version = "0.1.0"
+description = "Solutions to Advent of Code 2025, in Rust+Python"
+readme = "README.md"
+authors = [
+    { name = "Kevin Duff", email = "kevinkelduff@gmail.com" }
+]
+requires-python = ">=3.11"
+
+dependencies = [
+    "rich>=14.2.0",
+    "typer>=0.20.0",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.11.0",
+    "flake8>=7.3.0",
+    "isort>=7.0.0",
+    "poethepoet>=0.38.0",
+    "pyright>=1.1.407",
+    "pytest>=9.0.1",
+    "pytest-cov>=7.0.0",
+    "pytest-subtests>=0.15.0",
+]
+
+[project.scripts]
+aoc-2025 = "aoc_2025.cli:main"
+
+[tool.maturin]
+module-name = "aoc_2025._core"
+python-packages = ["aoc_2025"]
+python-source = "src"
+
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.pyright]
+reportMissingModuleSource = false
+
+[tool.poe.tasks]
+autoformat.sequence = [
+    {cmd = "black src tests"},
+    {cmd = "isort src tests"},
+]
+
+lint.sequence = [
+    {cmd = "black --check -v src tests"},
+    {cmd = "isort --check -v src tests"},
+    {cmd = "flake8 src tests"},
+    {cmd = "pyright src tests"},
+]
+
+[tool.poe.tasks.test]
+sequence = [
+    {cmd = "cargo test"},
+    {cmd = "maturin develop"},
+    {cmd = "pytest tests"},
+]

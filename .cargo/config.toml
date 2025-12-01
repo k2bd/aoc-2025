@@ -1,0 +1,6 @@
+[target.'cfg(target_os = "macos")']
+rustflags = [
+  # let all Python C‑API symbols remain undefined and be
+  # looked up when the .dylib is loaded by Python
+  "-C", "link-args=-undefined dynamic_lookup"
+]
