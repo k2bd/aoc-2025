@@ -1,7 +1,7 @@
 import pytest
 from pytest_subtests import SubTests
 
-from aoc_2025._core.day1 import Safe
+from aoc_2025.core.day1 import Safe
 
 
 @pytest.mark.parametrize(

@@ -1,4 +1,4 @@
-from aoc_2025._core.day1 import Safe
+from aoc_2025.core.day1 import Safe
 
 
 def day1_p1(puzzle_input: str) -> int:

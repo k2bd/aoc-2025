@@ -10,6 +10,7 @@ wheels/
 *.so
 src/aoc_2025/data/eval/*
 .coverage
+*.pyi
 
 
 # Virtual environments

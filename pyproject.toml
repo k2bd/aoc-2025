@@ -29,7 +29,7 @@ dev = [
 aoc-2025 = "aoc_2025.cli:main"
 
 [tool.maturin]
-module-name = "aoc_2025._core"
+module-name = "aoc_2025.core"
 python-packages = ["aoc_2025"]
 python-source = "src"
 

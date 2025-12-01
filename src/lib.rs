@@ -6,13 +6,13 @@ mod days;
 /// the `lib.name` setting in the `Cargo.toml`, else Python will not be able to
 /// import the module.
 #[pymodule]
-fn _core(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn core(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Day 1
     let day1_sub = wrap_pymodule!(days::day1::day1);
     m.add_wrapped(day1_sub)?;
     py.import("sys")?
         .getattr("modules")?
-        .set_item("aoc_2025._core.day1", day1_sub(py))?;
+        .set_item("aoc_2025.core.day1", day1_sub(py))?;
 
     Ok(())
 }

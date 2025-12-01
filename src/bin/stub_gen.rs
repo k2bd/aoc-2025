@@ -1,4 +1,4 @@
-use _core::stub_info;
+use core::stub_info;
 use pyo3_stub_gen::Result;
 
 fn main() -> Result<()> {
