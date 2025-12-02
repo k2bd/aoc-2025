@@ -1,9 +1,8 @@
 import pytest
 from pytest_subtests import SubTests
 
-from aoc_2025.rs.day01 import Safe
 from aoc_2025.day01 import day01_p1, day01_p2
-
+from aoc_2025.rs.day01 import Safe
 
 TEST_INPUT = """L68
 L30
@@ -49,6 +48,7 @@ def test_safe(
 
 def test_part1():
     assert day01_p1(TEST_INPUT) == 3
+
 
 def test_part2():
     assert day01_p2(TEST_INPUT) == 6
