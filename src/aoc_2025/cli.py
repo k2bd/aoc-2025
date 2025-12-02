@@ -89,7 +89,9 @@ def cli(
     table = Table(title=title)
     table.add_column("Day")
     table.add_column("Part 1")
+    table.add_column("Time (ms)", style="italic")
     table.add_column("Part 2")
+    table.add_column("Time (ms)", style="italic")
 
     for day in days:
         p1_times = []
@@ -113,13 +115,17 @@ def cli(
                 end = time.time_ns()
                 p2_times.append(end - start)
 
-        p1_time_ms = (sum(p1_times) / len(p1_times) if p1_times else 0) / 1e6
-        p2_time_ms = (sum(p2_times) / len(p2_times) if p1_times else 0) / 1e6
+        p1_time_ms = (
+            f"{(sum(p1_times) / len(p1_times)) / 1e6:.6f}" if p1_times else None
+        )
+        p2_time_ms = (
+            f"{(sum(p2_times) / len(p2_times)) / 1e6:.6f}" if p1_times else None
+        )
 
-        p1_entry = f"{p1_result} ({p1_time_ms:.4f}ms)" if p1_result is not None else "-"
-        p2_entry = f"{p2_result} ({p2_time_ms:.4f}ms)" if p2_result is not None else "-"
+        p1_entry = str(p1_result) if p1_result is not None else None
+        p2_entry = str(p2_result) if p2_result is not None else None
 
-        table.add_row(str(day.day), p1_entry, p2_entry)
+        table.add_row(str(day.day), p1_entry, p1_time_ms, p2_entry, p2_time_ms)
 
     console = Console()
     console.print(table)
