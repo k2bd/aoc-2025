@@ -37,7 +37,12 @@ Just some specific days:
 uv run aoc-2025 -d 1 -d 5
 ```
 
-More options:
+Repeat 20 times and average the timing results:
+```sh
+uv run aoc-2025 -r 20
+```
+
+Help:
 ```sh
 uv run aoc-2025 --help
 ```

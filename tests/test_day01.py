@@ -1,7 +1,20 @@
 import pytest
 from pytest_subtests import SubTests
 
-from aoc_2025.rs.day1 import Safe
+from aoc_2025.rs.day01 import Safe
+from aoc_2025.day01 import day01_p1, day01_p2
+
+
+TEST_INPUT = """L68
+L30
+R48
+L5
+R60
+L55
+L1
+L99
+R14
+L82"""
 
 
 @pytest.mark.parametrize(
@@ -32,3 +45,10 @@ def test_safe(
 
     with subtests.test("Zero-passes"):
         assert past_zero == expected_past_zero
+
+
+def test_part1():
+    assert day01_p1(TEST_INPUT) == 3
+
+def test_part2():
+    assert day01_p2(TEST_INPUT) == 6

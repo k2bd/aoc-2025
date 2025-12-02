@@ -1,7 +1,7 @@
-from aoc_2025.rs.day1 import Safe
+from aoc_2025.rs.day01 import Safe
 
 
-def day1_p1(puzzle_input: str) -> int:
+def day01_p1(puzzle_input: str) -> int:
     instructions = puzzle_input.splitlines()
     safe = Safe(positions=100, initial=50)
     zero_counts = 0
@@ -12,7 +12,7 @@ def day1_p1(puzzle_input: str) -> int:
     return zero_counts
 
 
-def day1_p2(puzzle_input: str) -> int:
+def day01_p2(puzzle_input: str) -> int:
     instructions = puzzle_input.splitlines()
     safe = Safe(positions=100, initial=50)
     zero_counts = 0
