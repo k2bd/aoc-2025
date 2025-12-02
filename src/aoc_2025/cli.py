@@ -7,7 +7,8 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from aoc_2025.day1 import day1_p1, day1_p2
+from aoc_2025.day01 import day01_p1, day01_p2
+from aoc_2025.day02 import day02_p1, day02_p2
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 TEST_DIR = os.path.join(DATA_DIR, "test")
@@ -58,10 +59,16 @@ def cli(
             help="Run test inputs instead of real inputs",
         ),
     ] = False,
+    repeats: Annotated[
+        int,
+        typer.Option(
+            "--repeats", "-r", help="Number of repeats to run for average timing"
+        ),
+    ] = 1,
 ) -> None:
     days = [
-        Day(day=1, p1=day1_p1, p2=day1_p2),
-        Day(day=2, p1=None, p2=None),
+        Day(day=1, p1=day01_p1, p2=day01_p2),
+        Day(day=2, p1=day02_p1, p2=day02_p2),
         Day(day=3, p1=None, p2=None),
         Day(day=4, p1=None, p2=None),
         Day(day=5, p1=None, p2=None),
@@ -76,36 +83,45 @@ def cli(
     if day_filter:
         days = [d for d in days if d.day in [int(day_str) for day_str in day_filter]]
 
-    table = Table(title="Advent of Code 2025")
+    title = "Advent of Code 2025"
+    if repeats != 1:
+        title += f" ({repeats} reps)"
+    table = Table(title=title)
     table.add_column("Day")
     table.add_column("Part 1")
+    table.add_column("Time (ms)", style="italic")
     table.add_column("Part 2")
+    table.add_column("Time (ms)", style="italic")
 
     for day in days:
+        p1_times = []
+        p2_times = []
+
+        p1_result = None
         if day.p1 is not None:
             p1_input = get_puzzle_input(day.input_p1, test=test)
-            start = time.time_ns()
-            p1_result = day.p1(p1_input)
-            end = time.time_ns()
-            p1_time_ms = (end - start) / 1e6
-        else:
-            p1_result = None
-            p1_time_ms = None
+            for _ in range(repeats):
+                start = time.time_ns()
+                p1_result = day.p1(p1_input)
+                end = time.time_ns()
+                p1_times.append(end - start)
 
+        p2_result = None
         if day.p2 is not None:
             p2_input = get_puzzle_input(day.input_p2, test=test)
-            start = time.time_ns()
-            p2_result = day.p2(p2_input)
-            end = time.time_ns()
-            p2_time_ms = (end - start) / 1e6
-        else:
-            p2_result = None
-            p2_time_ms = None
+            for _ in range(repeats):
+                start = time.time_ns()
+                p2_result = day.p2(p2_input)
+                end = time.time_ns()
+                p2_times.append(end - start)
 
-        p1_entry = f"{p1_result} ({p1_time_ms:.4f}ms)" if p1_result is not None else "-"
-        p2_entry = f"{p2_result} ({p2_time_ms:.4f}ms)" if p2_result is not None else "-"
+        p1_time_ms = f"{(sum(p1_times) / len(p1_times)) / 1e6:.5}" if p1_times else None
+        p2_time_ms = f"{(sum(p2_times) / len(p2_times)) / 1e6:.5}" if p1_times else None
 
-        table.add_row(str(day.day), p1_entry, p2_entry)
+        p1_entry = str(p1_result) if p1_result is not None else None
+        p2_entry = str(p2_result) if p2_result is not None else None
+
+        table.add_row(str(day.day), p1_entry, p1_time_ms, p2_entry, p2_time_ms)
 
     console = Console()
     console.print(table)

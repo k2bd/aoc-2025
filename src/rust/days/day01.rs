@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 
-#[pymodule(module = "aoc_2025.rs.day1")]
+#[pymodule(module = "aoc_2025.rs.day01")]
 pub fn day1(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Safe>()?;
 
@@ -9,7 +9,7 @@ pub fn day1(m: &Bound<'_, PyModule>) -> PyResult<()> {
 }
 
 #[gen_stub_pyclass]
-#[pyclass(module = "aoc_2025.rs.day1")]
+#[pyclass(module = "aoc_2025.rs.day01")]
 struct Safe {
     #[pyo3(get)]
     positions: isize,
