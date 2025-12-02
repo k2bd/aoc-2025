@@ -37,9 +37,9 @@ Just some specific days:
 uv run aoc-2025 -d 1 -d 5
 ```
 
-Repeat 20 times and average the timing results:
+Repeat 30 times and average the timing results:
 ```sh
-uv run aoc-2025 -r 20
+uv run aoc-2025 -r 30
 ```
 
 Help:
@@ -47,10 +47,10 @@ Help:
 uv run aoc-2025 --help
 ```
 
-Compile all solutions in release mode and run
+Compile all solutions in release mode and run with timings averaged over 30 runs
 
 ```sh
-uv run maturin develop --release && uv run aoc-2025
+uv run maturin develop --release && uv run aoc-2025 -r 30
 ```
 
 Do everything - test

@@ -116,10 +116,10 @@ def cli(
                 p2_times.append(end - start)
 
         p1_time_ms = (
-            f"{(sum(p1_times) / len(p1_times)) / 1e6:.6f}" if p1_times else None
+            f"{(sum(p1_times) / len(p1_times)) / 1e6:.5}" if p1_times else None
         )
         p2_time_ms = (
-            f"{(sum(p2_times) / len(p2_times)) / 1e6:.6f}" if p1_times else None
+            f"{(sum(p2_times) / len(p2_times)) / 1e6:.5}" if p1_times else None
         )
 
         p1_entry = str(p1_result) if p1_result is not None else None
