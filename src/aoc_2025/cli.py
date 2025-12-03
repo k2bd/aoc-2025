@@ -11,7 +11,9 @@ from aoc_2025.day01 import day01_p1, day01_p2
 from aoc_2025.day02 import day02_p1, day02_p2
 from aoc_2025.day03 import day03_p1, day03_p2
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+DATA_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data"
+)
 TEST_DIR = os.path.join(DATA_DIR, "test")
 EVAL_DIR = os.path.join(DATA_DIR, "eval")
 
@@ -22,7 +24,12 @@ def get_puzzle_input(filename: str, *, test: bool) -> str:
     else:
         dir_name = EVAL_DIR
 
-    with open(os.path.join(dir_name, filename), "r") as f:
+    target = os.path.join(dir_name, filename)
+    if not os.path.exists(target):
+        relpath = os.path.relpath(target, os.getcwd())
+        raise RuntimeError(f"Please add puzzle data to {relpath!r}")
+
+    with open(target, "r") as f:
         return f.read()
 
 
