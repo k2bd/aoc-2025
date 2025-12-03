@@ -9,6 +9,7 @@ from rich.table import Table
 
 from aoc_2025.day01 import day01_p1, day01_p2
 from aoc_2025.day02 import day02_p1, day02_p2
+from aoc_2025.day03 import day03_p1
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 TEST_DIR = os.path.join(DATA_DIR, "test")
@@ -69,7 +70,7 @@ def cli(
     days = [
         Day(day=1, p1=day01_p1, p2=day01_p2),
         Day(day=2, p1=day02_p1, p2=day02_p2),
-        Day(day=3, p1=None, p2=None),
+        Day(day=3, p1=day03_p1, p2=None),
         Day(day=4, p1=None, p2=None),
         Day(day=5, p1=None, p2=None),
         Day(day=6, p1=None, p2=None),
@@ -116,7 +117,7 @@ def cli(
                 p2_times.append(end - start)
 
         p1_time_ms = f"{(sum(p1_times) / len(p1_times)) / 1e6:.5}" if p1_times else None
-        p2_time_ms = f"{(sum(p2_times) / len(p2_times)) / 1e6:.5}" if p1_times else None
+        p2_time_ms = f"{(sum(p2_times) / len(p2_times)) / 1e6:.5}" if p2_times else None
 
         p1_entry = str(p1_result) if p1_result is not None else None
         p2_entry = str(p2_result) if p2_result is not None else None
