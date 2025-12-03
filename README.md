@@ -33,7 +33,7 @@ All solutions:
 uv run aoc-2025
 ```
 
-All tests:
+All test inputs:
 ```sh
 uv run aoc-2025 --test
 ```
@@ -53,8 +53,9 @@ Help:
 uv run aoc-2025 --help
 ```
 
-Compile all solutions in release mode and run with timings averaged over 30 runs
+### Useful combos
 
+Compile all solutions in release mode and run with timings averaged over 30 runs
 ```sh
 uv run maturin develop --release && uv run aoc-2025 -r 30
 ```
