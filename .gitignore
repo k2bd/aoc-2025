@@ -8,7 +8,7 @@ wheels/
 
 /target
 *.so
-src/aoc_2025/data/eval/*
+data/eval/*
 .coverage
 *.pyi
 

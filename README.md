@@ -12,6 +12,10 @@ This year I'm practicing writing Rust with Python bindings.
 | [Day 3](https://adventofcode.com/2025/day/3) | ⭐ |   |
 <!--- advent_readme_stars table --->
 
+## Setup
+
+To run this against your AoC inputs, add your puzzle data to `data/eval/` with a structure matching `data/test/`.
+
 ## Commands
 
 Stub generation:
