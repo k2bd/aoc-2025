@@ -168,8 +168,7 @@ def cli(
             else (None, None)
         )
 
-        if p1_entry is not None or p2_entry is not None:
-            table.add_row(str(day.day), p1_entry, p1_time_ms, p2_entry, p2_time_ms)
+        table.add_row(str(day.day), p1_entry, p1_time_ms, p2_entry, p2_time_ms)
 
     console = Console()
     console.print(table)
