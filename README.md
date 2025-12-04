@@ -1,6 +1,6 @@
 # Advent of code 2025
 
-This year I'm practicing writing Rust with Python bindings.
+This year I'm practicing writing Rust libraries with Python bindings. The tools for each solution are written in a Rust package, which is compiled into a library with Python bindings and used by a small Python application to put the solution together and report the result along with timings.
 
 <!--- advent_readme_stars table --->
 ## 2025 Results
