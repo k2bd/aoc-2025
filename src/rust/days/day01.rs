@@ -11,10 +11,10 @@ pub fn day1(m: &Bound<'_, PyModule>) -> PyResult<()> {
 #[gen_stub_pyclass]
 #[pyclass(module = "aoc_2025.rs.day01")]
 struct Safe {
-    #[pyo3(get)]
     positions: isize,
 
     #[pyo3(get)]
+    /// Current position of the dial
     dial: isize,
 }
 
