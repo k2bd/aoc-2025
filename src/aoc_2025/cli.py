@@ -1,7 +1,7 @@
 import os
 import time
 from dataclasses import dataclass
-from typing import Annotated, Callable, Optional, Union
+from typing import Annotated, Callable, Optional
 
 import typer
 from rich.console import Console
@@ -12,12 +12,15 @@ from aoc_2025.day01 import day01_p1, day01_p2
 from aoc_2025.day02 import day02_p1, day02_p2
 from aoc_2025.day03 import day03_p1, day03_p2
 from aoc_2025.day04 import day04_p1, day04_p2
+from aoc_2025.processor import get_processor_name
 
 DATA_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data"
 )
 TEST_DIR = os.path.join(DATA_DIR, "test")
 EVAL_DIR = os.path.join(DATA_DIR, "eval")
+
+type PuzzleFunction = Callable[[str], int | str]
 
 
 def get_puzzle_input(filename: str, *, test: bool) -> str:
@@ -38,8 +41,8 @@ def get_puzzle_input(filename: str, *, test: bool) -> str:
 @dataclass
 class Day:
     day: int
-    p1: Callable[[str], Union[int, str]] | None
-    p2: Callable[[str], Union[int, str]] | None
+    p1: PuzzleFunction | None
+    p2: PuzzleFunction | None
     _input_p1: str | None = None
     _input_p2: str | None = None
 
@@ -54,11 +57,16 @@ class Day:
 
 def cli(
     day_filter: Annotated[
-        Optional[list[str]],
+        Optional[list[int]],
         typer.Option(
             "--day",
             "-d",
-            help="One or more specific days to run",
+            help=(
+                "One or more specific days to run. "
+                "Add flag multiple times for multiple days."
+            ),
+            min=1,
+            max=12,
         ),
     ] = None,
     test: Annotated[
@@ -72,7 +80,10 @@ def cli(
     repeats: Annotated[
         int,
         typer.Option(
-            "--repeats", "-r", help="Number of repeats to run for average timing"
+            "--repeats",
+            "-r",
+            help="Number of repeats to run for average timing",
+            min=1,
         ),
     ] = 1,
 ) -> None:
@@ -91,47 +102,74 @@ def cli(
         Day(day=12, p1=None, p2=None),
     ]
     if day_filter:
-        days = [d for d in days if d.day in [int(day_str) for day_str in day_filter]]
+        days = [d for d in days if d.day in day_filter]
 
     title = "Advent of Code 2025"
+    caption = f"Run on {get_processor_name()}."
+
     if repeats != 1:
-        title += f" ({repeats} reps)"
-    table = Table(title=title)
+        caption = f"Timings show average of {repeats} runs. " + caption
+
+    table = Table(title=title, caption=caption)
     table.add_column("Day")
     table.add_column("Part 1")
     table.add_column("Time (ms)", style="italic")
     table.add_column("Part 2")
     table.add_column("Time (ms)", style="italic")
 
+    def run_puzzle(
+        *,
+        input_filename: str,
+        runner: PuzzleFunction,
+        day_num: int,
+        part_num: int,
+    ) -> tuple[str | None, str | None]:
+        times = []
+        puzzle_input = get_puzzle_input(input_filename, test=test)
+        result = None
+
+        run_range = range(repeats)
+        if repeats > 1:
+            run_range = track(
+                run_range,
+                description=f"Day {day_num:>2} part {part_num}",
+            )
+
+        for _ in run_range:
+            start = time.time_ns()
+            result = runner(puzzle_input)
+            end = time.time_ns()
+            times.append(end - start)
+
+        entry = str(result) if result is not None else None
+        time_ms = f"{(sum(times) / len(times)) / 1e6:.5}" if times else None
+
+        return entry, time_ms
+
     for day in days:
-        p1_times = []
-        p2_times = []
+        p1_entry, p1_time_ms = (
+            run_puzzle(
+                input_filename=day.input_p1,
+                runner=day.p1,
+                day_num=day.day,
+                part_num=1,
+            )
+            if day.p1 is not None
+            else (None, None)
+        )
+        p2_entry, p2_time_ms = (
+            run_puzzle(
+                input_filename=day.input_p2,
+                runner=day.p2,
+                day_num=day.day,
+                part_num=2,
+            )
+            if day.p2 is not None
+            else (None, None)
+        )
 
-        p1_result = None
-        if day.p1 is not None:
-            p1_input = get_puzzle_input(day.input_p1, test=test)
-            for _ in track(range(repeats), description=f"Day {day.day:>2} part 1"):
-                start = time.time_ns()
-                p1_result = day.p1(p1_input)
-                end = time.time_ns()
-                p1_times.append(end - start)
-
-        p2_result = None
-        if day.p2 is not None:
-            p2_input = get_puzzle_input(day.input_p2, test=test)
-            for _ in track(range(repeats), description=f"Day {day.day:>2} part 2"):
-                start = time.time_ns()
-                p2_result = day.p2(p2_input)
-                end = time.time_ns()
-                p2_times.append(end - start)
-
-        p1_time_ms = f"{(sum(p1_times) / len(p1_times)) / 1e6:.5}" if p1_times else None
-        p2_time_ms = f"{(sum(p2_times) / len(p2_times)) / 1e6:.5}" if p2_times else None
-
-        p1_entry = str(p1_result) if p1_result is not None else None
-        p2_entry = str(p2_result) if p2_result is not None else None
-
-        table.add_row(str(day.day), p1_entry, p1_time_ms, p2_entry, p2_time_ms)
+        if p1_entry is not None or p2_entry is not None:
+            table.add_row(str(day.day), p1_entry, p1_time_ms, p2_entry, p2_time_ms)
 
     console = Console()
     console.print(table)
