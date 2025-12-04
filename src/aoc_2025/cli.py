@@ -10,7 +10,7 @@ from rich.table import Table
 from aoc_2025.day01 import day01_p1, day01_p2
 from aoc_2025.day02 import day02_p1, day02_p2
 from aoc_2025.day03 import day03_p1, day03_p2
-from aoc_2025.day04 import day04_p1
+from aoc_2025.day04 import day04_p1, day04_p2
 
 DATA_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data"
@@ -79,7 +79,7 @@ def cli(
         Day(day=1, p1=day01_p1, p2=day01_p2),
         Day(day=2, p1=day02_p1, p2=day02_p2),
         Day(day=3, p1=day03_p1, p2=day03_p2),
-        Day(day=4, p1=day04_p1, p2=None),
+        Day(day=4, p1=day04_p1, p2=day04_p2),
         Day(day=5, p1=None, p2=None),
         Day(day=6, p1=None, p2=None),
         Day(day=7, p1=None, p2=None),

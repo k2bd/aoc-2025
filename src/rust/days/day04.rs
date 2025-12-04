@@ -13,6 +13,8 @@ pub fn day4(m: &Bound<'_, PyModule>) -> PyResult<()> {
 #[gen_stub_pyclass]
 #[pyclass(module = "aoc_2025.rs.day04")]
 struct StorageRoom {
+    #[pyo3(get)]
+    /// Positions of rolls currently in the room
     rolls: HashSet<(isize, isize)>,
 }
 
@@ -67,6 +69,18 @@ impl StorageRoom {
             .filter(|&&pos| self.neighbour_count(pos) < 4)
             .cloned()
             .collect()
+    }
+
+    /// Remove all accessible rolls, returning the (row, col) coordinates of
+    /// the rolls that were removed
+    fn remove_accessible_rolls(&mut self) -> HashSet<(isize, isize)> {
+        let to_remove = self.accessible_rolls();
+
+        to_remove.iter().for_each(|r| {
+            self.rolls.remove(r);
+        });
+
+        to_remove
     }
 }
 
@@ -133,5 +147,63 @@ mod tests {
                 (4, 9)
             ])
         );
+    }
+
+    #[rstest]
+    fn test_remove_accessible_rolls() {
+        let example_input = "..@@.@@@@.\n@@@.@.@.@@\n@@@@@.@.@@\n@@@@@@@@@@\n@@@@@@@@@@";
+        let mut room = StorageRoom::from(example_input);
+        let removed = room.remove_accessible_rolls();
+        assert_eq!(
+            removed,
+            HashSet::from([
+                (0, 2),
+                (0, 3),
+                (0, 5),
+                (0, 6),
+                (0, 8),
+                (1, 0),
+                (4, 0),
+                (4, 9)
+            ])
+        );
+        assert_eq!(
+            room.rolls,
+            HashSet::from([
+                (0, 7),
+                (1, 1),
+                (1, 2),
+                (1, 4),
+                (1, 6),
+                (1, 8),
+                (1, 9),
+                (2, 0),
+                (2, 1),
+                (2, 2),
+                (2, 3),
+                (2, 4),
+                (2, 6),
+                (2, 8),
+                (2, 9),
+                (3, 0),
+                (3, 1),
+                (3, 2),
+                (3, 3),
+                (3, 4),
+                (3, 5),
+                (3, 6),
+                (3, 7),
+                (3, 8),
+                (3, 9),
+                (4, 1),
+                (4, 2),
+                (4, 3),
+                (4, 4),
+                (4, 5),
+                (4, 6),
+                (4, 7),
+                (4, 8),
+            ])
+        )
     }
 }
