@@ -133,6 +133,7 @@ def cli(
             run_range = track(
                 run_range,
                 description=f"Day {day_num:>2} part {part_num}",
+                transient=True,
             )
 
         for _ in run_range:
