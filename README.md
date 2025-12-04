@@ -56,17 +56,17 @@ uv run aoc-2025 --help
 
 ### Useful combos
 
-Compile all solutions in release mode and run with timings averaged over 30 runs
+Compile in release mode and run with timings averaged over 30 runs
 ```sh
 uv run maturin develop --release && uv run aoc-2025 -r 30
 ```
 
-Do everything - test
+Do everything - dev build and test inputs (data/test)
 ```sh
 cargo run --bin stub_gen && uv run maturin develop && uv run aoc-2025 --test
 ```
 
-Do everything - release
+Do everything - release build and real inputs (data/eval)
 ```sh
 cargo run --bin stub_gen && uv run maturin develop --release && uv run aoc-2025
 ```
