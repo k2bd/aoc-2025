@@ -5,6 +5,7 @@ from typing import Annotated, Callable, Optional, Union
 
 import typer
 from rich.console import Console
+from rich.progress import track
 from rich.table import Table
 
 from aoc_2025.day01 import day01_p1, day01_p2
@@ -109,7 +110,7 @@ def cli(
         p1_result = None
         if day.p1 is not None:
             p1_input = get_puzzle_input(day.input_p1, test=test)
-            for _ in range(repeats):
+            for _ in track(range(repeats), description=f"Day {day.day:>2} part 1"):
                 start = time.time_ns()
                 p1_result = day.p1(p1_input)
                 end = time.time_ns()
@@ -118,7 +119,7 @@ def cli(
         p2_result = None
         if day.p2 is not None:
             p2_input = get_puzzle_input(day.input_p2, test=test)
-            for _ in range(repeats):
+            for _ in track(range(repeats), description=f"Day {day.day:>2} part 2"):
                 start = time.time_ns()
                 p2_result = day.p2(p2_input)
                 end = time.time_ns()
