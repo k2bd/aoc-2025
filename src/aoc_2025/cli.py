@@ -88,6 +88,10 @@ def cli(
             min=1,
         ),
     ] = 1,
+    no_results: Annotated[
+        bool,
+        typer.Option(help="Don't report results, just timings"),
+    ] = False,
 ) -> None:
     days = [
         Day(day=1, p1=day01_p1, p2=day01_p2),
@@ -114,10 +118,14 @@ def cli(
 
     table = Table(title=title, caption=caption)
     table.add_column("Day")
-    table.add_column("Part 1")
-    table.add_column("Time (ms)", style="italic")
-    table.add_column("Part 2")
-    table.add_column("Time (ms)", style="italic")
+    if no_results:
+        table.add_column("Part 1 (ms)")
+        table.add_column("Part 2 (ms)")
+    else:
+        table.add_column("Part 1")
+        table.add_column("Time (ms)", style="italic")
+        table.add_column("Part 2")
+        table.add_column("Time (ms)", style="italic")
 
     def run_puzzle(
         *,
@@ -171,7 +179,10 @@ def cli(
             else (None, None)
         )
 
-        table.add_row(str(day.day), p1_entry, p1_time_ms, p2_entry, p2_time_ms)
+        if no_results:
+            table.add_row(str(day.day), p1_time_ms, p2_time_ms)
+        else:
+            table.add_row(str(day.day), p1_entry, p1_time_ms, p2_entry, p2_time_ms)
 
     console = Console()
     console.print(table)
