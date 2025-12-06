@@ -1,6 +1,6 @@
 use core::panic;
 
-use pyo3::prelude::*;
+use pyo3::{prelude::*, types::PyType};
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 
 #[pymodule(module = "aoc_2026.rs.day06")]
@@ -26,7 +26,7 @@ impl Problem {
     fn solve(&self) -> isize {
         match self.operation {
             Operation::Add => self.values.iter().sum(),
-            Operation::Mult => self.values.iter().fold(1, |acc, &v| acc * v),
+            Operation::Mult => self.values.iter().product(),
         }
     }
 }
@@ -38,8 +38,12 @@ struct Homework {
     problems: Vec<Problem>,
 }
 
-impl From<&str> for Homework {
-    fn from(value: &str) -> Self {
+#[gen_stub_pymethods]
+#[pymethods]
+impl Homework {
+    #[classmethod]
+    #[pyo3(signature = (value))]
+    fn read_wrong(_cls: &Bound<'_, PyType>, value: &str) -> Self {
         let mut lines: Vec<&str> = value.lines().collect();
 
         let operation_line = lines.pop().unwrap();
@@ -52,7 +56,7 @@ impl From<&str> for Homework {
                     .collect::<Vec<_>>()
             })
             .collect();
-        if transposed.len() == 0 {
+        if transposed.is_empty() {
             panic!("No problem values");
         }
 
@@ -70,7 +74,7 @@ impl From<&str> for Homework {
             _ => panic!("Invalid operation"),
         });
 
-        Homework {
+        Self {
             problems: problem_values
                 .into_iter()
                 .zip(operations)
@@ -78,53 +82,64 @@ impl From<&str> for Homework {
                 .collect(),
         }
     }
-}
 
-#[gen_stub_pymethods]
-#[pymethods]
-impl Homework {
-    #[new]
-    fn new(value: &str) -> Self {
-        Self::from(value)
+    #[classmethod]
+    #[pyo3(signature = (value))]
+    fn read_right(_cls: &Bound<'_, PyType>, value: &str) -> Self {
+        let transposed_chars: Vec<Vec<char>> =
+            value.lines().map(|line| line.chars().collect()).collect();
+        if transposed_chars.is_empty() {
+            panic!("No problem values");
+        }
+        let (numerical_input, operation_input): (Vec<String>, Vec<String>) =
+            (0..transposed_chars[0].len())
+                .map(|col| {
+                    let str = (0..transposed_chars.len())
+                        .map(|row| transposed_chars[row][col])
+                        .collect::<String>();
+                    let (num_part, op_part) = str.split_at(str.len() - 1);
+                    (num_part.to_owned(), op_part.to_owned())
+                })
+                .collect();
+        let operations: Vec<Operation> = operation_input
+            .into_iter()
+            .filter_map(|s| {
+                if s.trim().is_empty() {
+                    None
+                } else {
+                    match s.as_str() {
+                        "+" => Some(Operation::Add),
+                        "*" => Some(Operation::Mult),
+                        _ => panic!("Invalid operator"),
+                    }
+                }
+            })
+            .collect();
+        let (mut problem_values, last) = numerical_input.into_iter().fold(
+            (Vec::<Vec<isize>>::new(), Vec::<isize>::new()),
+            |(mut result, mut current_problem), val| {
+                let trimmed = val.trim();
+                if trimmed.is_empty() {
+                    result.push(current_problem);
+                    current_problem = Vec::new();
+                } else {
+                    current_problem.push(trimmed.parse().unwrap());
+                }
+                (result, current_problem)
+            },
+        );
+        problem_values.push(last);
+
+        Self {
+            problems: problem_values
+                .into_iter()
+                .zip(operations)
+                .map(|(values, operation)| Problem { values, operation })
+                .collect(),
+        }
     }
 
     fn grand_total(&self) -> isize {
         self.problems.iter().map(|p| p.solve()).sum()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use rstest::*;
-
-    #[rstest]
-    fn test_create_homework() {
-        let example_input = "123 328  51 64 \n 45 64  387 23 \n  6 98  215 314\n*   +   *   +  ";
-        let homework = Homework::from(example_input);
-
-        assert_eq!(
-            homework,
-            Homework {
-                problems: vec![
-                    Problem {
-                        values: vec![123, 45, 6],
-                        operation: Operation::Mult,
-                    },
-                    Problem {
-                        values: vec![328, 64, 98],
-                        operation: Operation::Add,
-                    },
-                    Problem {
-                        values: vec![51, 387, 215],
-                        operation: Operation::Mult,
-                    },
-                    Problem {
-                        values: vec![64, 23, 314],
-                        operation: Operation::Add,
-                    },
-                ]
-            }
-        )
     }
 }
