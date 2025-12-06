@@ -38,6 +38,18 @@ fn rs(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
         .getattr("modules")?
         .set_item("aoc_2025.rs.day04", day4_sub(py))?;
 
+    let day5_sub = wrap_pymodule!(days::day05::day5);
+    m.add_wrapped(day5_sub)?;
+    py.import("sys")?
+        .getattr("modules")?
+        .set_item("aoc_2025.rs.day05", day5_sub(py))?;
+
+    let day6_sub = wrap_pymodule!(days::day06::day6);
+    m.add_wrapped(day6_sub)?;
+    py.import("sys")?
+        .getattr("modules")?
+        .set_item("aoc_2025.rs.day06", day6_sub(py))?;
+
     Ok(())
 }
 
