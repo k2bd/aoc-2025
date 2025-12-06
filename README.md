@@ -23,12 +23,12 @@ To run this against your AoC inputs, add your puzzle data to `data/eval/` with a
 
 Stub generation:
 ```sh
-cargo run --bin stub_gen
+uv run poe stubs
 ```
 
 Recompile
 ```sh
-uv run maturin develop
+uv run poe build [--release]
 ```
 
 All solutions:
@@ -51,7 +51,7 @@ Repeat 30 times and average the timing results:
 uv run aoc-2025 -r 30
 ```
 
-Help:
+Help and additional options:
 ```sh
 uv run aoc-2025 --help
 ```
@@ -60,15 +60,15 @@ uv run aoc-2025 --help
 
 Compile in release mode and run with timings averaged over 30 runs
 ```sh
-uv run maturin develop --release && uv run aoc-2025 -r 30
+uv run poe build --release && uv run aoc-2025 -r 30
 ```
 
 Do everything - dev build and test inputs (data/test)
 ```sh
-cargo run --bin stub_gen && uv run maturin develop && uv run aoc-2025 --test
+uv run poe stubs && uv run poe build && uv run aoc-2025 --test
 ```
 
 Do everything - release build and real inputs (data/eval)
 ```sh
-cargo run --bin stub_gen && uv run maturin develop --release && uv run aoc-2025
+uv run poe stubs && uv run poe build --release && uv run aoc-2025
 ```

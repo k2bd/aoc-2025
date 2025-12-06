@@ -40,9 +40,13 @@ build-backend = "maturin"
 [tool.isort]
 profile = "black"
 multi_line_output = 3
+skip = ["src/aoc_2025/rs"]
 
 [tool.pyright]
 reportMissingModuleSource = false
+
+[tool.black]
+exclude = "src/aoc_2025/rs/*"
 
 [tool.poe.tasks]
 autoformat.sequence = [
@@ -57,9 +61,19 @@ lint.sequence = [
     {cmd = "pyright src tests"},
 ]
 
+build = "uv run maturin develop"
+
 [tool.poe.tasks.test]
 sequence = [
     {cmd = "cargo test"},
     {cmd = "maturin develop"},
     {cmd = "pytest tests -v"},
+]
+
+
+[tool.poe.tasks.stubs]
+sequence = [
+    {cmd = "rm src/aoc_2025/rs/*"},
+    {cmd = "rmdir src/aoc_2025/rs"},
+    {cmd = "cargo run --bin stub_gen"},
 ]
