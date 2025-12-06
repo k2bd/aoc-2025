@@ -12,6 +12,7 @@ from aoc_2025.day01 import day01_p1, day01_p2
 from aoc_2025.day02 import day02_p1, day02_p2
 from aoc_2025.day03 import day03_p1, day03_p2
 from aoc_2025.day04 import day04_p1, day04_p2
+from aoc_2025.day05 import day05_p1, day05_p2
 from aoc_2025.processor import get_processor_name
 
 DATA_DIR = os.path.join(
@@ -92,7 +93,7 @@ def cli(
         Day(day=2, p1=day02_p1, p2=day02_p2),
         Day(day=3, p1=day03_p1, p2=day03_p2),
         Day(day=4, p1=day04_p1, p2=day04_p2),
-        Day(day=5, p1=None, p2=None),
+        Day(day=5, p1=day05_p1, p2=day05_p2),
         Day(day=6, p1=None, p2=None),
         Day(day=7, p1=None, p2=None),
         Day(day=8, p1=None, p2=None),
