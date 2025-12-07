@@ -73,7 +73,7 @@ sequence = [
 
 [tool.poe.tasks.stubs]
 sequence = [
-    {cmd = "rm src/aoc_2025/rs/*"},
-    {cmd = "rmdir src/aoc_2025/rs"},
+    {shell = "rm src/aoc_2025/rs/* || true"},
+    {shell = "rmdir src/aoc_2025/rs || true"},
     {cmd = "cargo run --bin stub_gen"},
 ]
