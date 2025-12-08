@@ -8,13 +8,13 @@ from rich.console import Console
 from rich.progress import track
 from rich.table import Table
 
-from aoc_2025.day01 import day01_p1, day01_p2
-from aoc_2025.day02 import day02_p1, day02_p2
-from aoc_2025.day03 import day03_p1, day03_p2
-from aoc_2025.day04 import day04_p1, day04_p2
-from aoc_2025.day05 import day05_p1, day05_p2
-from aoc_2025.day06 import day06_p1, day06_p2
-from aoc_2025.day07 import day07_p1, day07_p2
+from aoc_2025.days.day01 import day01_p1, day01_p2
+from aoc_2025.days.day02 import day02_p1, day02_p2
+from aoc_2025.days.day03 import day03_p1, day03_p2
+from aoc_2025.days.day04 import day04_p1, day04_p2
+from aoc_2025.days.day05 import day05_p1, day05_p2
+from aoc_2025.days.day06 import day06_p1, day06_p2
+from aoc_2025.days.day07 import day07_p1, day07_p2
 from aoc_2025.processor import get_processor_name
 
 DATA_DIR = os.path.join(

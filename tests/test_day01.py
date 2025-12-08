@@ -1,7 +1,7 @@
 import pytest
 from pytest_subtests import SubTests
 
-from aoc_2025.day01 import day01_p1, day01_p2
+from aoc_2025.days.day01 import day01_p1, day01_p2
 from aoc_2025.rs.day01 import Safe
 
 

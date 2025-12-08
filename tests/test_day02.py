@@ -1,4 +1,4 @@
-from aoc_2025.day02 import day02_p1, day02_p2
+from aoc_2025.days.day02 import day02_p1, day02_p2
 
 
 def test_part1(test_data):
