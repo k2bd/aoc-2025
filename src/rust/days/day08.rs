@@ -113,7 +113,7 @@ impl Network {
         let mut to_visit = self.get_neighbors(node);
 
         loop {
-            if to_visit.len() == 0 {
+            if to_visit.is_empty() {
                 break;
             }
 
@@ -131,6 +131,23 @@ impl Network {
         }
 
         visited
+    }
+
+    /// Get available connections, sorted by distance ascending
+    fn get_available_connections(&self) -> Vec<(Coordinate, Coordinate)> {
+        let mut available_connections = self
+            ._squared_costs
+            .clone()
+            .into_iter()
+            .filter(|((from, to), _)| from < to)
+            .filter(|(coord, _)| !self.connections.contains(coord))
+            .collect::<Vec<_>>();
+        available_connections.sort_by(|(_, a), (_, b)| a.cmp(b));
+
+        available_connections
+            .into_iter()
+            .map(|(pair, _)| pair)
+            .collect()
     }
 }
 
@@ -155,31 +172,36 @@ impl Network {
             circuits.push(new_circuit);
         }
 
-        circuits.sort_by(|a, b| b.len().cmp(&a.len()));
+        circuits.sort_by_key(|b| std::cmp::Reverse(b.len()));
 
         circuits
     }
 
     /// Make the best intercircuit connection, returning the coordinate added
     fn make_intercircuit_connection(&mut self) -> (Coordinate, Coordinate) {
-        todo!()
+        let circuits = self.get_circuits();
+        let (from, to) = self
+            .get_available_connections()
+            .into_iter()
+            .find(|&(from, to)| {
+                !circuits
+                    .iter()
+                    .find(|c| c.contains(&from))
+                    .unwrap()
+                    .contains(&to)
+            })
+            .unwrap();
+
+        self.connect(from, to);
+        (from, to)
     }
 
     /// Make a number of connections, returning the circuits within the network
     fn make_connections(&mut self, count: usize) {
-        let mut available_connections = self
-            ._squared_costs
-            .clone()
-            .into_iter()
-            .filter(|((from, to), _)| from < to)
-            .filter(|(coord, _)| !self.connections.contains(coord))
-            .collect::<Vec<_>>();
-        available_connections.sort_by(|(_, a), (_, b)| a.cmp(b));
-
-        available_connections
+        self.get_available_connections()
             .into_iter()
             .take(count)
-            .for_each(|((from, to), _cost)| {
+            .for_each(|(from, to)| {
                 self.connect(from, to);
             });
     }
@@ -196,21 +218,6 @@ mod tests {
         let mut network = Network::from(input);
 
         network.make_connections(10);
-
-        let circuits = network.get_circuits();
-        let sizes = circuits.iter().map(|c| c.len()).collect::<Vec<_>>();
-
-        assert_eq!(sizes.into_iter().take(3).collect::<Vec<_>>(), vec![5, 4, 2]);
-    }
-
-    #[rstest]
-    fn test_get_circuit_individual_connections() {
-        let input = "162,817,812\n57,618,57\n906,360,560\n592,479,940\n352,342,300\n466,668,158\n542,29,236\n431,825,988\n739,650,466\n52,470,668\n216,146,977\n819,987,18\n117,168,530\n805,96,715\n346,949,466\n970,615,88\n941,993,340\n862,61,35\n984,92,344\n425,690,689";
-        let mut network = Network::from(input);
-
-        for _ in 0..10 {
-            network.make_connection();
-        }
 
         let circuits = network.get_circuits();
         let sizes = circuits.iter().map(|c| c.len()).collect::<Vec<_>>();

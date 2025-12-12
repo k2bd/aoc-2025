@@ -15,7 +15,7 @@ from aoc_2025.day04 import day04_p1, day04_p2
 from aoc_2025.day05 import day05_p1, day05_p2
 from aoc_2025.day06 import day06_p1, day06_p2
 from aoc_2025.day07 import day07_p1, day07_p2
-from aoc_2025.day08 import day08_p1_test, day08_p1_eval, day08_p2
+from aoc_2025.day08 import day08_p1_eval, day08_p1_test, day08_p2
 from aoc_2025.processor import get_processor_name
 
 DATA_DIR = os.path.join(
@@ -167,7 +167,7 @@ def cli(
             times.append(end - start)
 
         entry = str(result) if result is not None else None
-        time_ms = f"{(sum(times) / len(times)) / 1e6:.5}" if times else None
+        time_ms = f"{(sum(times) / len(times)) / 1e6:.7}" if times else None
 
         return entry, time_ms
 
