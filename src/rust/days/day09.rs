@@ -1,6 +1,6 @@
 use std::{collections::HashSet, ops::Add};
 
-use pyo3::prelude::*;
+use pyo3::{ffi::traverseproc, prelude::*};
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pyfunction, gen_stub_pymethods};
 
 #[pymodule(module = "aoc_2026.rs.day09")]
@@ -82,25 +82,12 @@ fn largest_carpet_area(input: &str) -> usize {
 #[pyclass(module = "aoc_2025.rs.day09")]
 struct FactoryFloor {
     red_tiles: HashSet<Coordinate>,
-    inverse_green_area: HashSet<Coordinate>,
-}
-
-fn is_bounded_outside_shape(
-    node: Coordinate,
-    min_coord: Coordinate,
-    max_coord: Coordinate,
-    shape: &HashSet<Coordinate>,
-) -> bool {
-    node.x >= min_coord.x
-        && node.y >= min_coord.y
-        && node.x <= max_coord.x
-        && node.y <= max_coord.y
-        && !shape.contains(&node)
+    green_area: HashSet<Coordinate>,
 }
 
 /// A horrible way to get the green area. Trace the bounding lines of the
 /// shape, flood-fill outside the shape, then invert
-fn get_inverse_green_area(red_path: &Vec<Coordinate>) -> HashSet<Coordinate> {
+fn get_green_area(red_path: &Vec<Coordinate>) -> HashSet<Coordinate> {
     let mut path_pairs = red_path.clone();
     path_pairs.rotate_left(1);
 
@@ -124,7 +111,7 @@ fn get_inverse_green_area(red_path: &Vec<Coordinate>) -> HashSet<Coordinate> {
         }
     }
 
-    // Now flood fill the outside of the shape
+    // Now flood fill the inside of the shape
     let min_coord = Coordinate {
         x: red_path.iter().map(|c| c.x).min().unwrap() - 1,
         y: red_path.iter().map(|c| c.y).min().unwrap() - 1,
@@ -134,8 +121,38 @@ fn get_inverse_green_area(red_path: &Vec<Coordinate>) -> HashSet<Coordinate> {
         y: red_path.iter().map(|c| c.y).max().unwrap() + 1,
     };
 
-    let mut q: Vec<Coordinate> = Vec::from([min_coord.clone()]);
-    let mut outside_shape: HashSet<Coordinate> = HashSet::new();
+    // Find an inner point by finding a row without any points and whose first
+    // two boundaries that have at least one point between them.
+    // N.B. ASSUMES there will be some inner point of this kind, though that's
+    // not necessarily the case in general
+    let point_inside_shape = (min_coord.y..max_coord.y)
+        .filter(|&y| !red_path.iter().any(|&c| c.y == y))
+        .find_map(|y| {
+            let mut elements = path_elements
+                .iter()
+                .cloned()
+                .filter(move |&c| c.y == y)
+                .collect::<Vec<_>>();
+            elements.sort_by_key(|c| c.x);
+            let mut elements_iter = elements.into_iter();
+
+            if let Some(target) = elements_iter.next() {
+                if let Some(next) = elements_iter.next() {
+                    if next.x - target.x > 1 {
+                        return Some(target + Coordinate { x: 1, y: 0 });
+                    }
+                }
+            }
+
+            None
+        })
+        .unwrap();
+
+    let mut q: Vec<Coordinate> = Vec::from([point_inside_shape]);
+    let mut inside_shape: HashSet<Coordinate> = HashSet::new();
+
+    let tmp_perimeter_points = path_elements.len();
+    let approx_area = ((tmp_perimeter_points as f64) / 4.0).powf(2.0);
 
     loop {
         if q.is_empty() {
@@ -144,22 +161,23 @@ fn get_inverse_green_area(red_path: &Vec<Coordinate>) -> HashSet<Coordinate> {
 
         let n = q.pop().unwrap();
 
-        if is_bounded_outside_shape(n, min_coord, max_coord, &path_elements) {
-            outside_shape.insert(n);
+        if !path_elements.contains(&n) {
+            inside_shape.insert(n);
+            println!(
+                "{:?} - ~{:?}%",
+                n,
+                100.0 * (inside_shape.len() as f64 / approx_area)
+            );
             for neighbor in n.neighbors() {
-                if !outside_shape.contains(&neighbor) {
+                if !inside_shape.contains(&neighbor) {
                     q.push(neighbor);
                 }
             }
         }
     }
-    outside_shape
+    inside_shape.extend(path_elements);
 
-    //    // Now invert
-    //    (min_coord.x..max_coord.x)
-    //        .flat_map(|x| (min_coord.y..max_coord.y).map(move |y| Coordinate { x, y }))
-    //        .filter(|c| !outside_shape.contains(c))
-    //        .collect()
+    inside_shape
 }
 
 fn perimeter_points(c1: Coordinate, c2: Coordinate) -> HashSet<Coordinate> {
@@ -196,11 +214,11 @@ impl From<&str> for FactoryFloor {
             })
             .collect::<Vec<_>>();
 
-        let inverse_green_area = get_inverse_green_area(&red_path);
+        let green_area = get_green_area(&red_path);
 
         Self {
             red_tiles: red_path.into_iter().collect(),
-            inverse_green_area,
+            green_area,
         }
     }
 }
@@ -226,9 +244,9 @@ impl FactoryFloor {
                 })
             })
             .filter(|&(c1, c2)| {
-                !perimeter_points(c1, c2)
+                perimeter_points(c1, c2)
                     .iter()
-                    .any(|p| self.inverse_green_area.contains(p))
+                    .all(|p| self.green_area.contains(p))
             })
             .map(|(c1, c2)| area(c1, c2))
             .max()
