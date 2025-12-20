@@ -16,6 +16,7 @@ This year I'm practicing writing Rust libraries with Python bindings. The tools 
 | [Day 7](https://adventofcode.com/2025/day/7) | ⭐ | ⭐ |
 | [Day 8](https://adventofcode.com/2025/day/8) | ⭐ | ⭐ |
 | [Day 9](https://adventofcode.com/2025/day/9) | ⭐ | ⭐ |
+| [Day 10](https://adventofcode.com/2025/day/10) | ⭐ |   |
 <!--- advent_readme_stars table --->
 
 ## Setup
