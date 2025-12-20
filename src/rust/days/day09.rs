@@ -1,6 +1,6 @@
 use std::{collections::HashSet, ops::Add};
 
-use pyo3::{ffi::traverseproc, prelude::*};
+use pyo3::prelude::*;
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pyfunction, gen_stub_pymethods};
 
 #[pymodule(module = "aoc_2026.rs.day09")]
@@ -29,17 +29,6 @@ impl Add<Coordinate> for Coordinate {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
         }
-    }
-}
-
-impl Coordinate {
-    fn neighbors(&self) -> HashSet<Coordinate> {
-        HashSet::from([
-            *self + Coordinate { x: -1, y: 0 },
-            *self + Coordinate { x: 1, y: 0 },
-            *self + Coordinate { x: 0, y: -1 },
-            *self + Coordinate { x: 0, y: 1 },
-        ])
     }
 }
 
@@ -82,102 +71,9 @@ fn largest_carpet_area(input: &str) -> usize {
 #[pyclass(module = "aoc_2025.rs.day09")]
 struct FactoryFloor {
     red_tiles: HashSet<Coordinate>,
-    green_area: HashSet<Coordinate>,
-}
 
-/// A horrible way to get the green area. Trace the bounding lines of the
-/// shape, flood-fill outside the shape, then invert
-fn get_green_area(red_path: &Vec<Coordinate>) -> HashSet<Coordinate> {
-    let mut path_pairs = red_path.clone();
-    path_pairs.rotate_left(1);
-
-    // Path around the shape
-    let mut path_elements = HashSet::new();
-    for (from, to) in red_path.clone().into_iter().zip(path_pairs) {
-        if from.x == to.x {
-            let start = from.y.min(to.y);
-            let end = from.y.max(to.y);
-
-            (start..=end).for_each(|y| {
-                path_elements.insert(Coordinate { x: from.x, y });
-            });
-        } else {
-            let start = from.x.min(to.x);
-            let end = from.x.max(to.x);
-
-            (start..=end).for_each(|x| {
-                path_elements.insert(Coordinate { x, y: from.y });
-            });
-        }
-    }
-
-    // Now flood fill the inside of the shape
-    let min_coord = Coordinate {
-        x: red_path.iter().map(|c| c.x).min().unwrap() - 1,
-        y: red_path.iter().map(|c| c.y).min().unwrap() - 1,
-    };
-    let max_coord = Coordinate {
-        x: red_path.iter().map(|c| c.x).max().unwrap() + 1,
-        y: red_path.iter().map(|c| c.y).max().unwrap() + 1,
-    };
-
-    // Find an inner point by finding a row without any points and whose first
-    // two boundaries that have at least one point between them.
-    // N.B. ASSUMES there will be some inner point of this kind, though that's
-    // not necessarily the case in general
-    let point_inside_shape = (min_coord.y..max_coord.y)
-        .filter(|&y| !red_path.iter().any(|&c| c.y == y))
-        .find_map(|y| {
-            let mut elements = path_elements
-                .iter()
-                .cloned()
-                .filter(move |&c| c.y == y)
-                .collect::<Vec<_>>();
-            elements.sort_by_key(|c| c.x);
-            let mut elements_iter = elements.into_iter();
-
-            if let Some(target) = elements_iter.next() {
-                if let Some(next) = elements_iter.next() {
-                    if next.x - target.x > 1 {
-                        return Some(target + Coordinate { x: 1, y: 0 });
-                    }
-                }
-            }
-
-            None
-        })
-        .unwrap();
-
-    let mut q: Vec<Coordinate> = Vec::from([point_inside_shape]);
-    let mut inside_shape: HashSet<Coordinate> = HashSet::new();
-
-    let tmp_perimeter_points = path_elements.len();
-    let approx_area = ((tmp_perimeter_points as f64) / 4.0).powf(2.0);
-
-    loop {
-        if q.is_empty() {
-            break;
-        }
-
-        let n = q.pop().unwrap();
-
-        if !path_elements.contains(&n) {
-            inside_shape.insert(n);
-            println!(
-                "{:?} - ~{:?}%",
-                n,
-                100.0 * (inside_shape.len() as f64 / approx_area)
-            );
-            for neighbor in n.neighbors() {
-                if !inside_shape.contains(&neighbor) {
-                    q.push(neighbor);
-                }
-            }
-        }
-    }
-    inside_shape.extend(path_elements);
-
-    inside_shape
+    shape_outline: HashSet<Coordinate>,
+    vertical_walls: HashSet<Coordinate>,
 }
 
 fn perimeter_points(c1: Coordinate, c2: Coordinate) -> HashSet<Coordinate> {
@@ -201,6 +97,39 @@ fn perimeter_points(c1: Coordinate, c2: Coordinate) -> HashSet<Coordinate> {
     result
 }
 
+/// Get the coordinates of the shape's outline
+fn get_shape_outline(red_path: &[Coordinate]) -> HashSet<Coordinate> {
+    let mut path_pairs = red_path.to_owned();
+    path_pairs.rotate_left(1);
+    // Path around the shape
+    red_path
+        .iter()
+        .zip(path_pairs)
+        .flat_map(|(from, to)| {
+            (from.y.min(to.y)..=from.y.max(to.y)).flat_map(move |y| {
+                (from.x.min(to.x)..=from.x.max(to.x)).map(move |x| Coordinate { x, y })
+            })
+        })
+        .collect()
+}
+
+/// Get the coordinates of all the vertical walls
+fn get_vertical_walls(red_path: &[Coordinate]) -> HashSet<Coordinate> {
+    let mut path_pairs = red_path.to_vec();
+    path_pairs.rotate_left(1);
+    // Path around the shape
+    red_path
+        .iter()
+        .zip(path_pairs)
+        .filter(|(from, to)| from.x == to.x)
+        .flat_map(|(from, to)| {
+            (from.y.min(to.y)..from.y.max(to.y))
+                .map(|y| Coordinate { x: from.x, y })
+                .collect::<Vec<_>>()
+        })
+        .collect()
+}
+
 impl From<&str> for FactoryFloor {
     fn from(value: &str) -> Self {
         let red_path = value
@@ -214,12 +143,28 @@ impl From<&str> for FactoryFloor {
             })
             .collect::<Vec<_>>();
 
-        let green_area = get_green_area(&red_path);
+        let shape_outline = get_shape_outline(&red_path);
+        let vertical_walls = get_vertical_walls(&red_path);
 
         Self {
             red_tiles: red_path.into_iter().collect(),
-            green_area,
+            shape_outline,
+            vertical_walls,
         }
+    }
+}
+
+impl FactoryFloor {
+    /// Returns if the point is inside the polygon
+    fn point_inside(&self, point: Coordinate) -> bool {
+        self.shape_outline.contains(&point)
+            || self
+                .vertical_walls
+                .iter()
+                .filter(|p| p.y == point.y && p.x >= point.x)
+                .count()
+                % 2
+                == 1
     }
 }
 
@@ -232,7 +177,8 @@ impl FactoryFloor {
     }
 
     fn largest_carpet_area(&self) -> usize {
-        self.red_tiles
+        let mut tile_areas = self
+            .red_tiles
             .iter()
             .flat_map(|p1| {
                 self.red_tiles.iter().filter_map(move |p2| {
@@ -243,13 +189,223 @@ impl FactoryFloor {
                     }
                 })
             })
-            .filter(|&(c1, c2)| {
+            .map(|(c1, c2)| (c1, c2, area(c1, c2)))
+            .collect::<Vec<_>>();
+        tile_areas.sort_by_key(|&(_, _, area)| -(area as isize));
+
+        tile_areas
+            .into_iter()
+            .find(|&(c1, c2, _)| {
+                println!("{:?} - {:?}", c1, c2);
                 perimeter_points(c1, c2)
                     .iter()
-                    .all(|p| self.green_area.contains(p))
+                    .all(|&p| self.point_inside(p))
             })
-            .map(|(c1, c2)| area(c1, c2))
-            .max()
+            .map(|(_, _, area)| area)
             .unwrap()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::*;
+
+    #[rstest]
+    fn test_shape_outline() {
+        // Shape reminder:
+        // ..............
+        // .......#XXX#..
+        // .......X...X..
+        // ..#XXXX#...X..
+        // ..X........X..
+        // ..#XXXXXX#.X..
+        // .........X.X..
+        // .........#X#..
+        // ..............
+
+        let input = "7,1\n11,1\n11,7\n9,7\n9,5\n2,5\n2,3\n7,3";
+        let floor = FactoryFloor::from(input);
+
+        assert_eq!(
+            floor.shape_outline,
+            HashSet::from([
+                // Vertical
+                Coordinate { x: 7, y: 1 },
+                Coordinate { x: 7, y: 2 },
+                Coordinate { x: 7, y: 3 },
+                Coordinate { x: 11, y: 1 },
+                Coordinate { x: 11, y: 2 },
+                Coordinate { x: 11, y: 3 },
+                Coordinate { x: 11, y: 4 },
+                Coordinate { x: 11, y: 5 },
+                Coordinate { x: 11, y: 6 },
+                Coordinate { x: 11, y: 7 },
+                Coordinate { x: 9, y: 7 },
+                Coordinate { x: 9, y: 6 },
+                Coordinate { x: 9, y: 5 },
+                Coordinate { x: 2, y: 3 },
+                Coordinate { x: 2, y: 4 },
+                Coordinate { x: 2, y: 5 },
+                // Horizontal
+                Coordinate { x: 8, y: 1 },
+                Coordinate { x: 9, y: 1 },
+                Coordinate { x: 10, y: 1 },
+                Coordinate { x: 3, y: 3 },
+                Coordinate { x: 4, y: 3 },
+                Coordinate { x: 5, y: 3 },
+                Coordinate { x: 6, y: 3 },
+                Coordinate { x: 3, y: 5 },
+                Coordinate { x: 4, y: 5 },
+                Coordinate { x: 5, y: 5 },
+                Coordinate { x: 6, y: 5 },
+                Coordinate { x: 7, y: 5 },
+                Coordinate { x: 8, y: 5 },
+                Coordinate { x: 5, y: 5 },
+                Coordinate { x: 10, y: 7 },
+            ])
+        );
+    }
+
+    #[rstest]
+    fn test_vertical_walls() {
+        // Shape reminder:
+        // ..............
+        // .......#XXX#..
+        // .......X...X..
+        // ..#XXXX#...X..
+        // ..X........X..
+        // ..#XXXXXX#.X..
+        // .........X.X..
+        // .........#X#..
+        // ..............
+
+        // Vertical walls:
+        // ..............
+        // .......X...X..
+        // .......X...X..
+        // ..X....-...X..
+        // ..X........X..
+        // ..-......X.X..
+        // .........X.X..
+        // .........-.-..
+        // ..............
+
+        let input = "7,1\n11,1\n11,7\n9,7\n9,5\n2,5\n2,3\n7,3";
+        let floor = FactoryFloor::from(input);
+
+        assert_eq!(
+            floor.vertical_walls,
+            HashSet::from([
+                Coordinate { x: 7, y: 1 },
+                Coordinate { x: 7, y: 2 },
+                Coordinate { x: 11, y: 1 },
+                Coordinate { x: 11, y: 2 },
+                Coordinate { x: 11, y: 3 },
+                Coordinate { x: 11, y: 4 },
+                Coordinate { x: 11, y: 5 },
+                Coordinate { x: 11, y: 6 },
+                Coordinate { x: 9, y: 6 },
+                Coordinate { x: 9, y: 5 },
+                Coordinate { x: 2, y: 3 },
+                Coordinate { x: 2, y: 4 },
+            ])
+        );
+    }
+
+    #[rstest]
+    fn test_internal_points() {
+        // Shape reminder:
+        // ..............
+        // .......#XXX#..
+        // .......X...X..
+        // ..#XXXX#...X..
+        // ..X........X..
+        // ..#XXXXXX#.X..
+        // .........X.X..
+        // .........#X#..
+        // ..............
+
+        // Internal points:
+        // ..............
+        // .......XXXXX..
+        // .......XXXXX..
+        // ..XXXXXXXXXX..
+        // ..XXXXXXXXXX..
+        // ..XXXXXXXXXX..
+        // .........XXX..
+        // .........XXX..
+        // ..............
+
+        let input = "7,1\n11,1\n11,7\n9,7\n9,5\n2,5\n2,3\n7,3";
+        let floor = FactoryFloor::from(input);
+
+        let internal: HashSet<Coordinate> = (0..15)
+            .flat_map(|x| (0..15).map(move |y| Coordinate { x, y }))
+            .filter(|&point| floor.point_inside(point))
+            .collect();
+
+        assert_eq!(
+            internal,
+            HashSet::from([
+                // Vertical
+                Coordinate { x: 7, y: 1 },
+                Coordinate { x: 7, y: 2 },
+                Coordinate { x: 7, y: 3 },
+                Coordinate { x: 11, y: 1 },
+                Coordinate { x: 11, y: 2 },
+                Coordinate { x: 11, y: 3 },
+                Coordinate { x: 11, y: 4 },
+                Coordinate { x: 11, y: 5 },
+                Coordinate { x: 11, y: 6 },
+                Coordinate { x: 11, y: 7 },
+                Coordinate { x: 9, y: 7 },
+                Coordinate { x: 9, y: 6 },
+                Coordinate { x: 9, y: 5 },
+                Coordinate { x: 2, y: 3 },
+                Coordinate { x: 2, y: 4 },
+                Coordinate { x: 2, y: 5 },
+                // Horizontal
+                Coordinate { x: 8, y: 1 },
+                Coordinate { x: 9, y: 1 },
+                Coordinate { x: 10, y: 1 },
+                Coordinate { x: 3, y: 3 },
+                Coordinate { x: 4, y: 3 },
+                Coordinate { x: 5, y: 3 },
+                Coordinate { x: 6, y: 3 },
+                Coordinate { x: 3, y: 5 },
+                Coordinate { x: 4, y: 5 },
+                Coordinate { x: 5, y: 5 },
+                Coordinate { x: 6, y: 5 },
+                Coordinate { x: 7, y: 5 },
+                Coordinate { x: 8, y: 5 },
+                Coordinate { x: 5, y: 5 },
+                Coordinate { x: 10, y: 7 },
+                // Inside
+                Coordinate { x: 8, y: 2 },
+                Coordinate { x: 9, y: 2 },
+                Coordinate { x: 10, y: 2 },
+                Coordinate { x: 8, y: 3 },
+                Coordinate { x: 9, y: 3 },
+                Coordinate { x: 10, y: 3 },
+                Coordinate { x: 3, y: 4 },
+                Coordinate { x: 4, y: 4 },
+                Coordinate { x: 5, y: 4 },
+                Coordinate { x: 6, y: 4 },
+                Coordinate { x: 7, y: 4 },
+                Coordinate { x: 8, y: 4 },
+                Coordinate { x: 9, y: 4 },
+                Coordinate { x: 10, y: 4 },
+                Coordinate { x: 3, y: 5 },
+                Coordinate { x: 4, y: 5 },
+                Coordinate { x: 5, y: 5 },
+                Coordinate { x: 6, y: 5 },
+                Coordinate { x: 7, y: 5 },
+                Coordinate { x: 8, y: 5 },
+                Coordinate { x: 9, y: 5 },
+                Coordinate { x: 10, y: 5 },
+                Coordinate { x: 10, y: 6 },
+            ])
+        );
     }
 }
