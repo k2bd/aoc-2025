@@ -1,7 +1,7 @@
 import os
 import time
 from dataclasses import dataclass
-from typing import Annotated, Callable, Optional
+from typing import Annotated, Callable, Literal, Optional
 
 import typer
 from rich.console import Console
@@ -15,6 +15,8 @@ from aoc_2025.day04 import day04_p1, day04_p2
 from aoc_2025.day05 import day05_p1, day05_p2
 from aoc_2025.day06 import day06_p1, day06_p2
 from aoc_2025.day07 import day07_p1, day07_p2
+from aoc_2025.day08 import day08_p1_eval, day08_p1_test, day08_p2
+from aoc_2025.day09 import day09_p1, day09_p2
 from aoc_2025.processor import get_processor_name
 
 DATA_DIR = os.path.join(
@@ -46,6 +48,8 @@ class Day:
     day: int
     p1: PuzzleFunction | None
     p2: PuzzleFunction | None
+    p1_test: PuzzleFunction | None = None
+    p2_test: PuzzleFunction | None = None
     _input_p1: str | None = None
     _input_p2: str | None = None
 
@@ -56,6 +60,16 @@ class Day:
     @property
     def input_p2(self):
         return val if (val := self._input_p2) is not None else self.input_p1
+
+    def get_runner(self, part: Literal[1, 2], is_test: bool) -> PuzzleFunction | None:
+        if part == 1:
+            if is_test:
+                return self.p1_test or self.p1
+            return self.p1
+        if part == 2:
+            if is_test:
+                return self.p2_test or self.p2
+            return self.p2
 
 
 def cli(
@@ -102,8 +116,8 @@ def cli(
         Day(day=5, p1=day05_p1, p2=day05_p2),
         Day(day=6, p1=day06_p1, p2=day06_p2),
         Day(day=7, p1=day07_p1, p2=day07_p2),
-        Day(day=8, p1=None, p2=None),
-        Day(day=9, p1=None, p2=None),
+        Day(day=8, p1=day08_p1_eval, p1_test=day08_p1_test, p2=day08_p2),
+        Day(day=9, p1=day09_p1, p2=day09_p2),
         Day(day=10, p1=None, p2=None),
         Day(day=11, p1=None, p2=None),
         Day(day=12, p1=None, p2=None),
@@ -154,7 +168,7 @@ def cli(
             times.append(end - start)
 
         entry = str(result) if result is not None else None
-        time_ms = f"{(sum(times) / len(times)) / 1e6:.5}" if times else None
+        time_ms = f"{(sum(times) / len(times)) / 1e6:.7}" if times else None
 
         return entry, time_ms
 
@@ -162,21 +176,21 @@ def cli(
         p1_entry, p1_time_ms = (
             run_puzzle(
                 input_filename=day.input_p1,
-                runner=day.p1,
+                runner=runner,
                 day_num=day.day,
                 part_num=1,
             )
-            if day.p1 is not None
+            if (runner := day.get_runner(part=1, is_test=test)) is not None
             else (None, None)
         )
         p2_entry, p2_time_ms = (
             run_puzzle(
                 input_filename=day.input_p2,
-                runner=day.p2,
+                runner=runner,
                 day_num=day.day,
                 part_num=2,
             )
-            if day.p2 is not None
+            if (runner := day.get_runner(part=2, is_test=test)) is not None
             else (None, None)
         )
 
